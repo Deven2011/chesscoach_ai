@@ -56,8 +56,8 @@ class _GameOptionsState extends State<GameOptions>
                   parent: _animationController, curve: Curves.easeOut),
             ),
             child: GameModePicker(
-              appModel.playerCount,
-              appModel.setPlayerCount,
+              appModel.gameModeSelection,
+              appModel.setGameMode,
             ),
           ),
           SizedBox(height: 24 * scale),
@@ -75,7 +75,7 @@ class _GameOptionsState extends State<GameOptions>
                 ),
               );
             },
-            child: appModel.playerCount == 1
+            child: appModel.playingWithAI
                 ? Column(
                     key: const ValueKey('ai-options'),
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,9 +184,11 @@ class _SetupSummary extends StatelessWidget {
               ),
             ),
             child: Icon(
-              appModel.playerCount == 1
-                  ? Icons.smart_toy_rounded
-                  : Icons.people_alt_rounded,
+              appModel.playingAgainstCoach
+                  ? Icons.psychology_alt_rounded
+                  : appModel.playerCount == 1
+                      ? Icons.smart_toy_rounded
+                      : Icons.people_alt_rounded,
               color: Colors.white,
               size: 22 * scale,
             ),
@@ -197,7 +199,11 @@ class _SetupSummary extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  appModel.playerCount == 1 ? 'AI Match' : 'Local Match',
+                  appModel.playingAgainstCoach
+                      ? 'Play Against Coach'
+                      : appModel.playerCount == 1
+                          ? 'AI Match'
+                          : 'Local Match',
                   style: AppTextStyles.textTheme().titleMedium?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w800,
@@ -221,6 +227,9 @@ class _SetupSummary extends StatelessWidget {
 
   String _summaryText(AppModel model) {
     final clock = model.timeLimit == 0 ? 'Unlimited' : '${model.timeLimit} min';
+    if (model.playingAgainstCoach) {
+      return 'Live move review, ${_difficulty(model.aiDifficulty)} AI, ${_side(model.selectedSide)}, $clock';
+    }
     if (model.playerCount == 1) {
       return '${_difficulty(model.aiDifficulty)} AI, ${_side(model.selectedSide)}, $clock';
     }

@@ -10,6 +10,7 @@ import 'package:en_passant/logic/move_calculation/move_classes/move_meta.dart';
 import 'package:en_passant/logic/shared_functions.dart';
 import 'package:en_passant/logic/timer_service.dart';
 import 'package:en_passant/models/app_themes.dart';
+import 'package:en_passant/models/move_review_model.dart';
 import 'package:en_passant/models/player.dart';
 import 'package:en_passant/models/user_preferences.dart';
 
@@ -17,6 +18,7 @@ class AppModel extends ChangeNotifier {
   // ── Game Settings ──
   int playerCount = 1;
   int aiDifficulty = 3;
+  bool coachModeEnabled = false;
   Player selectedSide = Player.player1;
   Player playerSide = Player.player1;
 
@@ -68,6 +70,8 @@ class AppModel extends ChangeNotifier {
   Player get aiTurn => oppositePlayer(playerSide);
   bool get isAIsTurn => playingWithAI && (turn == aiTurn);
   bool get playingWithAI => playerCount == 1;
+  bool get playingAgainstCoach => playingWithAI && coachModeEnabled;
+  int get gameModeSelection => coachModeEnabled ? 3 : playerCount;
   Duration get currentGameDuration {
     if (timeLimit > 0) {
       final totalClock = Duration(minutes: timeLimit * 2);
@@ -83,6 +87,7 @@ class AppModel extends ChangeNotifier {
 
   // Used to prevent AnimatedRotation from sweeping across the screen when first loading the board.
   bool animateBoardRotation = false;
+  Future<void> Function(MoveAnalysisInput input)? onRealtimeCoachMove;
 
   bool get isBoardInverted {
     if (playingWithAI) {
@@ -253,8 +258,26 @@ class AppModel extends ChangeNotifier {
   void setPlayerCount(int? count) {
     if (count != null) {
       playerCount = count;
+      coachModeEnabled = false;
       notifyListeners();
     }
+  }
+
+  void setGameMode(int? mode) {
+    if (mode == null) return;
+    if (mode == 3) {
+      playerCount = 1;
+      coachModeEnabled = true;
+    } else {
+      playerCount = mode;
+      coachModeEnabled = false;
+    }
+    notifyListeners();
+  }
+
+  void setCoachModeEnabled(bool enabled) {
+    coachModeEnabled = enabled;
+    notifyListeners();
   }
 
   void setAIDifficulty(int? difficulty) {
@@ -308,6 +331,10 @@ class AppModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void dispatchRealtimeCoachMove(MoveAnalysisInput input) {
+    onRealtimeCoachMove?.call(input);
+  }
+
   void saveGameState() {
     GameStateStorage.saveGameState(this);
   }
@@ -320,6 +347,7 @@ class AppModel extends ChangeNotifier {
     timerService.stop();
 
     playerCount = state['playerCount'] as int;
+    coachModeEnabled = state['coachModeEnabled'] as bool? ?? false;
     aiDifficulty = state['aiDifficulty'] as int;
     playerSide = Player.values[state['playerSide'] as int];
     selectedSide = Player.values[state['selectedSide'] as int];

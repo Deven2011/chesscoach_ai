@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flame/flame.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -13,6 +15,7 @@ import 'package:en_passant/providers/ai_coach_provider.dart';
 import 'package:en_passant/providers/analytics_provider.dart';
 import 'package:en_passant/providers/auth_provider.dart';
 import 'package:en_passant/providers/match_history_provider.dart';
+import 'package:en_passant/providers/realtime_coach_provider.dart';
 import 'package:en_passant/screens/auth/auth_gate.dart';
 import 'package:en_passant/core/theme/app_theme.dart';
 
@@ -22,12 +25,13 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  await _loadFlameAssets();
+  unawaited(_loadFlameAssets());
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => AppModel()),
         ChangeNotifierProvider(create: (context) => AuthProvider()),
+        ChangeNotifierProvider(create: (context) => RealtimeCoachProvider()),
         ChangeNotifierProxyProvider<AuthProvider, MatchHistoryProvider>(
           create: (context) => MatchHistoryProvider(),
           update: (context, auth, provider) {
@@ -70,13 +74,35 @@ Future<void> _loadFlameAssets() async {
       }
     }
   }
-  await Flame.images.loadAll(pieceImages);
-  await FlameAudio.audioCache.loadAll([
-    'piece_moved.mp3',
-    'win.wav',
-    'lose.wav',
-    'tie.wav',
-  ]);
+  try {
+    await Flame.images.loadAll(pieceImages);
+  } on Object catch (error, stack) {
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: error,
+        stack: stack,
+        library: 'startup',
+        context: ErrorDescription('loading chess piece images'),
+      ),
+    );
+  }
+  try {
+    await FlameAudio.audioCache.loadAll([
+      'piece_moved.mp3',
+      'win.wav',
+      'lose.wav',
+      'tie.wav',
+    ]);
+  } on Object catch (error, stack) {
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: error,
+        stack: stack,
+        library: 'startup',
+        context: ErrorDescription('loading chess audio'),
+      ),
+    );
+  }
 }
 
 class Chess extends StatelessWidget {

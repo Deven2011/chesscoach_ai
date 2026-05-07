@@ -134,7 +134,11 @@ class MatchHistoryProvider extends ChangeNotifier {
     return MatchModel.completed(
       userId: userId,
       winner: winner,
-      gameMode: appModel.playingWithAI ? 'Play vs AI' : '2 Player Local',
+      gameMode: appModel.playingAgainstCoach
+          ? 'Play Against Coach'
+          : appModel.playingWithAI
+              ? 'Play vs AI'
+              : '2 Player Local',
       aiDifficulty: appModel.playingWithAI ? appModel.aiDifficulty : 0,
       duration: appModel.currentGameDuration,
       moveCount: appModel.moveMetaList.length,

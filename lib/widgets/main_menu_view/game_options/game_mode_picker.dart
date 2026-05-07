@@ -22,6 +22,14 @@ class GameModePicker extends StatelessWidget {
             Text('Play vs AI'),
           ],
         ),
+        3: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.psychology_alt_rounded),
+            SizedBox(width: 6),
+            Text('Play Against Coach'),
+          ],
+        ),
         2: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

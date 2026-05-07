@@ -1,5 +1,3 @@
-
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:en_passant/models/app_model.dart';
@@ -9,6 +7,7 @@ import 'package:en_passant/logic/move_calculation/move_classes/move.dart';
 
 // Constants for SharedPreferences keys
 const String _playerCountKey = 'playerCount';
+const String _coachModeEnabledKey = 'coachModeEnabled';
 const String _aiDifficultyKey = 'aiDifficulty';
 const String _playerSideKey = 'playerSide';
 const String _selectedSideKey = 'selectedSide';
@@ -38,12 +37,15 @@ class GameStateStorage {
 
     // Save game metadata
     await prefs.setInt(_playerCountKey, appModel.playerCount);
+    await prefs.setBool(_coachModeEnabledKey, appModel.coachModeEnabled);
     await prefs.setInt(_aiDifficultyKey, appModel.aiDifficulty);
     await prefs.setInt(_playerSideKey, appModel.playerSide.index);
     await prefs.setInt(_selectedSideKey, appModel.selectedSide.index);
     await prefs.setInt(_timeLimitKey, appModel.timeLimit);
-    await prefs.setInt(_player1TimeLeftMsKey, appModel.player1TimeLeft.value.inMilliseconds);
-    await prefs.setInt(_player2TimeLeftMsKey, appModel.player2TimeLeft.value.inMilliseconds);
+    await prefs.setInt(
+        _player1TimeLeftMsKey, appModel.player1TimeLeft.value.inMilliseconds);
+    await prefs.setInt(
+        _player2TimeLeftMsKey, appModel.player2TimeLeft.value.inMilliseconds);
     await prefs.setBool(_gameOverKey, appModel.gameOver);
     await prefs.setBool(_stalemateKey, appModel.stalemate);
 
@@ -68,6 +70,7 @@ class GameStateStorage {
     try {
       final Map<String, dynamic> state = {
         'playerCount': prefs.getInt(_playerCountKey),
+        'coachModeEnabled': prefs.getBool(_coachModeEnabledKey),
         'aiDifficulty': prefs.getInt(_aiDifficultyKey),
         'playerSide': prefs.getInt(_playerSideKey),
         'selectedSide': prefs.getInt(_selectedSideKey),
@@ -89,6 +92,7 @@ class GameStateStorage {
     final prefs = await _getPrefs();
     await prefs.remove(_gameStateKey);
     await prefs.remove(_playerCountKey);
+    await prefs.remove(_coachModeEnabledKey);
     await prefs.remove(_aiDifficultyKey);
     await prefs.remove(_playerSideKey);
     await prefs.remove(_selectedSideKey);
@@ -116,7 +120,8 @@ class GameStateStorage {
       if (parts.length == 3) {
         promotionType = _parsePromotionChar(parts[2]);
       }
-      return Move(from, to, promotionType: promotionType ?? ChessPieceType.promotion);
+      return Move(from, to,
+          promotionType: promotionType ?? ChessPieceType.promotion);
     }).toList();
   }
 

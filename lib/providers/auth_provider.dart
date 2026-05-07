@@ -14,6 +14,7 @@ class AuthProvider extends ChangeNotifier {
   UserModel? _user;
   bool _isInitializing = true;
   bool _isLoading = false;
+  bool _isDisposed = false;
   String? _errorMessage;
 
   AuthProvider({
@@ -21,10 +22,15 @@ class AuthProvider extends ChangeNotifier {
     FirestoreService? firestoreService,
   })  : _authService = authService ?? AuthService(),
         _firestoreService = firestoreService ?? FirestoreService() {
-    _authSubscription = _authService.authStateChanges().listen((user) {
-      _user = user;
-      _isInitializing = false;
-      notifyListeners();
+    _authSubscription = _authService.authStateChanges().listen(
+      _completeInitialization,
+      onError: (_) {
+        _completeInitialization(_safeCurrentUser());
+      },
+    );
+    Future<void>.delayed(const Duration(seconds: 4), () {
+      if (!_isInitializing) return;
+      _completeInitialization(_safeCurrentUser());
     });
   }
 
@@ -33,6 +39,21 @@ class AuthProvider extends ChangeNotifier {
   bool get isInitializing => _isInitializing;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+
+  void _completeInitialization(UserModel? user) {
+    if (_isDisposed) return;
+    _user = user;
+    _isInitializing = false;
+    notifyListeners();
+  }
+
+  UserModel? _safeCurrentUser() {
+    try {
+      return _authService.currentUser;
+    } on Object {
+      return null;
+    }
+  }
 
   Future<bool> signUp({
     required String email,
@@ -122,6 +143,7 @@ class AuthProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _isDisposed = true;
     _authSubscription?.cancel();
     super.dispose();
   }
