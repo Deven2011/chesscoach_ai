@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:en_passant/models/app_model.dart';
+import 'package:en_passant/providers/auth_provider.dart' as auth;
 import 'package:en_passant/core/theme/app_colors.dart';
 import 'package:en_passant/core/theme/app_text_styles.dart';
+import 'package:en_passant/screens/analytics/analytics_dashboard_screen.dart';
+import 'package:en_passant/screens/analytics/match_history_screen.dart';
 import 'package:en_passant/screens/chess_view.dart';
+import 'package:en_passant/screens/coach/ai_coach_dashboard_screen.dart';
 import 'package:en_passant/screens/settings_view.dart';
 import 'package:en_passant/screens/game_setup_view.dart';
 import 'package:en_passant/widgets/shared/app_scaffold.dart';
@@ -37,11 +41,12 @@ class _ActionCardsGridState extends State<ActionCardsGrid> {
   @override
   Widget build(BuildContext context) {
     final scale = AppTextStyles.responsiveScale(context);
-    
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;
-        final childAspectRatio = (constraints.maxWidth / crossAxisCount) / (200 * scale);
+        final childAspectRatio =
+            (constraints.maxWidth / crossAxisCount) / (200 * scale);
 
         return GridView.count(
           crossAxisCount: crossAxisCount,
@@ -82,6 +87,13 @@ class _ActionCardsGridState extends State<ActionCardsGrid> {
               onTap: () => _navigateToAnalytics(context),
             ),
             ActionCard(
+              icon: Icons.psychology_alt_rounded,
+              title: 'AI Coach',
+              subtitle: 'Personal training plan',
+              color: AppColors.secondary,
+              onTap: () => _navigateToCoach(context),
+            ),
+            ActionCard(
               icon: Icons.history_rounded,
               title: 'Match History',
               subtitle: 'Review past games',
@@ -94,6 +106,13 @@ class _ActionCardsGridState extends State<ActionCardsGrid> {
               subtitle: 'Customize experience',
               color: AppColors.secondaryLight,
               onTap: () => _navigateToSettings(context),
+            ),
+            ActionCard(
+              icon: Icons.logout_rounded,
+              title: 'Sign Out',
+              subtitle: 'Return to login',
+              color: AppColors.error,
+              onTap: () => _signOut(context),
             ),
           ],
         );
@@ -125,14 +144,23 @@ class _ActionCardsGridState extends State<ActionCardsGrid> {
   }
 
   void _navigateToAnalytics(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Analytics coming soon!')),
+    Navigator.push(
+      context,
+      AppScaffold.pageRoute(child: const AnalyticsDashboardScreen()),
+    );
+  }
+
+  void _navigateToCoach(BuildContext context) {
+    Navigator.push(
+      context,
+      AppScaffold.pageRoute(child: const AiCoachDashboardScreen()),
     );
   }
 
   void _navigateToHistory(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Match History coming soon!')),
+    Navigator.push(
+      context,
+      AppScaffold.pageRoute(child: const MatchHistoryScreen()),
     );
   }
 
@@ -141,6 +169,37 @@ class _ActionCardsGridState extends State<ActionCardsGrid> {
       context,
       AppScaffold.pageRoute(child: const SettingsView()),
     ).then((_) => _checkSavedGame());
+  }
+
+  Future<void> _signOut(BuildContext context) async {
+    final authProvider = context.read<auth.AuthProvider>();
+    final shouldSignOut = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text('Sign out?', style: AppTextStyles.headline3(context)),
+        content: Text(
+          'Your saved game and settings stay on this device.',
+          style: AppTextStyles.body1(context),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('CANCEL'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('SIGN OUT'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldSignOut == true) {
+      if (!mounted) return;
+      await authProvider.signOut();
+    }
   }
 }
 

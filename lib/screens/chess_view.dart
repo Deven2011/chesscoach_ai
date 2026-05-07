@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:en_passant/logic/chess_game.dart';
 import 'package:en_passant/models/app_model.dart';
 import 'package:en_passant/models/app_themes.dart' as board_themes;
+import 'package:en_passant/providers/auth_provider.dart' as auth;
+import 'package:en_passant/providers/match_history_provider.dart';
 import 'package:en_passant/widgets/chess_view/chess_board_widget.dart';
 import 'package:en_passant/widgets/chess_view/game_info_and_controls.dart';
 import 'package:en_passant/widgets/chess_view/game_info_and_controls/game_status.dart';
@@ -103,6 +105,18 @@ class _ChessViewState extends State<ChessView> with WidgetsBindingObserver {
           _confettiController.stop();
         }
 
+        if (appModel.gameOver) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            final userId = context.read<auth.AuthProvider>().user?.uid;
+            if (userId == null) return;
+            context.read<MatchHistoryProvider>().saveCompletedMatch(
+                  userId: userId,
+                  appModel: appModel,
+                );
+          });
+        }
+
         return PopScope(
           canPop: false,
           onPopInvokedWithResult: (didPop, result) async {
@@ -184,11 +198,13 @@ class _ChessViewState extends State<ChessView> with WidgetsBindingObserver {
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
         title: Text('Exit Game?', style: AppTextStyles.headline3(context)),
-        content: Text('Do you want to save your progress?', style: AppTextStyles.body1(context)),
+        content: Text('Do you want to save your progress?',
+            style: AppTextStyles.body1(context)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('CANCEL', style: TextStyle(color: AppColors.onSurfaceVariant)),
+            child: Text('CANCEL',
+                style: TextStyle(color: AppColors.onSurfaceVariant)),
           ),
           TextButton(
             onPressed: () {
