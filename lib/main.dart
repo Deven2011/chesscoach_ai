@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flame/flame.dart';
 import 'package:flame_audio/flame_audio.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,12 +15,14 @@ import 'package:en_passant/models/user_preferences.dart';
 import 'package:en_passant/providers/ai_coach_provider.dart';
 import 'package:en_passant/providers/analytics_provider.dart';
 import 'package:en_passant/providers/auth_provider.dart';
+import 'package:en_passant/providers/connectivity_provider.dart';
 import 'package:en_passant/providers/match_history_provider.dart';
 import 'package:en_passant/providers/puzzle_provider.dart';
 import 'package:en_passant/providers/realtime_coach_provider.dart';
 import 'package:en_passant/providers/replay_provider.dart';
 import 'package:en_passant/screens/auth/auth_gate.dart';
 import 'package:en_passant/core/theme/app_theme.dart';
+import 'package:en_passant/widgets/shared/offline_banner.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,12 +30,17 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
   unawaited(_loadFlameAssets());
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => AppModel()),
         ChangeNotifierProvider(create: (context) => AuthProvider()),
+        ChangeNotifierProvider(create: (context) => ConnectivityProvider()),
         ChangeNotifierProvider(create: (context) => RealtimeCoachProvider()),
         ChangeNotifierProvider(create: (context) => ReplayProvider()),
         ChangeNotifierProxyProvider<AuthProvider, PuzzleProvider>(
@@ -125,6 +133,9 @@ class Chess extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'ChessCoach AI',
       theme: AppTheme.darkTheme,
+      builder: (context, child) {
+        return OfflineBanner(child: child ?? const SizedBox.shrink());
+      },
       home: const AuthGate(),
     );
   }

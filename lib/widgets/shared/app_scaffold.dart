@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:en_passant/core/theme/app_colors.dart';
 import 'package:en_passant/core/theme/app_text_styles.dart';
+import 'package:en_passant/widgets/shared/sync_status_indicator.dart';
 
 /// A reusable scaffold wrapper for ChessCoach AI.
 /// Provides a premium dark gradient background, SafeArea support,
@@ -101,7 +102,16 @@ class AppScaffold extends StatelessWidget {
 
     Widget content = Padding(
       padding: effectivePadding,
-      child: body,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Align(
+            alignment: Alignment.centerRight,
+            child: SyncStatusIndicator(),
+          ),
+          Expanded(child: body),
+        ],
+      ),
     );
 
     if (useSafeArea) {

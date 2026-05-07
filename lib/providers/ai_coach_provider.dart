@@ -6,10 +6,15 @@ import 'package:en_passant/ai_coach/ai_coach_engine.dart';
 import 'package:en_passant/firebase/firestore_service.dart';
 import 'package:en_passant/models/coach_insight_model.dart';
 import 'package:en_passant/models/match_model.dart';
+import 'package:en_passant/models/sync_state_model.dart';
+import 'package:en_passant/services/offline_cache_service.dart';
+import 'package:en_passant/services/sync_service.dart';
 
 class AiCoachProvider extends ChangeNotifier {
   final FirestoreService _firestoreService;
   final AiCoachEngine _coachEngine;
+  final OfflineCacheService _cacheService;
+  final SyncService _syncService;
 
   AiCoachReport _report = AiCoachReport.empty();
   bool _isLoading = false;
@@ -22,8 +27,12 @@ class AiCoachProvider extends ChangeNotifier {
   AiCoachProvider({
     FirestoreService? firestoreService,
     AiCoachEngine? coachEngine,
+    OfflineCacheService? cacheService,
+    SyncService? syncService,
   })  : _firestoreService = firestoreService ?? FirestoreService(),
-        _coachEngine = coachEngine ?? AiCoachEngine();
+        _coachEngine = coachEngine ?? AiCoachEngine(),
+        _cacheService = cacheService ?? OfflineCacheService(),
+        _syncService = syncService ?? SyncService();
 
   AiCoachReport get report => _report;
   bool get isLoading => _isLoading;
@@ -49,6 +58,7 @@ class AiCoachProvider extends ChangeNotifier {
       return;
     }
 
+    unawaited(_loadCachedInsights(userId));
     _report = _coachEngine.buildReport(matches);
     unawaited(_persistReport());
     scheduleMicrotask(notifyListeners);
@@ -65,9 +75,15 @@ class AiCoachProvider extends ChangeNotifier {
       _report = _coachEngine.buildReport(matches);
       _lastMatchSignature = _signature(userId, matches);
       await _firestoreService.saveCoachReport(userId: userId, report: _report);
+      await _cacheService.saveCoachInsights(userId, _report.allInsights);
       _errorMessage = null;
     } on Object {
-      _errorMessage = 'Could not refresh AI Coach insights.';
+      final cached = await _cacheService.getCoachInsights(userId);
+      if (cached.isNotEmpty) {
+        _errorMessage = 'Showing cached AI Coach insights.';
+      } else {
+        _errorMessage = 'Could not refresh AI Coach insights.';
+      }
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -101,6 +117,7 @@ class AiCoachProvider extends ChangeNotifier {
 
     _isSaving = true;
     final reportToSave = _report;
+    await _cacheService.saveCoachInsights(userId, reportToSave.allInsights);
     try {
       await _firestoreService.saveCoachReport(
         userId: userId,
@@ -108,6 +125,17 @@ class AiCoachProvider extends ChangeNotifier {
       );
       _errorMessage = null;
     } on Object {
+      await _syncService.enqueue(
+        SyncActionModel.create(
+          type: SyncActionType.saveCoachInsights,
+          userId: userId,
+          payload: {
+            'insights': reportToSave.allInsights
+                .map((insight) => insight.toMap())
+                .toList(),
+          },
+        ),
+      );
       _errorMessage = 'AI Coach is available locally, but sync failed.';
     } finally {
       _isSaving = false;
@@ -117,6 +145,13 @@ class AiCoachProvider extends ChangeNotifier {
         unawaited(_persistReport());
       }
     }
+  }
+
+  Future<void> _loadCachedInsights(String userId) async {
+    final cached = await _cacheService.getCoachInsights(userId);
+    if (cached.isEmpty || _report.allInsights.isNotEmpty) return;
+    _errorMessage = 'Showing cached AI Coach insights.';
+    notifyListeners();
   }
 
   String _signature(String? userId, List<MatchModel> matches) {

@@ -154,6 +154,24 @@ class FirestoreService {
     await batch.commit();
   }
 
+  Future<void> saveCoachInsights({
+    required String userId,
+    required List<CoachInsightModel> insights,
+  }) async {
+    final batch = _firestore.batch();
+    for (final insight in insights) {
+      batch.set(
+        coachInsightsRef(userId).doc(insight.id),
+        {
+          ...insight.toFirestore(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+    }
+    await batch.commit();
+  }
+
   // Puzzle-related methods
 
   Future<PuzzleAttemptModel> savePuzzleAttempt(

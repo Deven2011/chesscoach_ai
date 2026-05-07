@@ -7,9 +7,14 @@ import 'package:en_passant/logic/chess_piece.dart';
 import 'package:en_passant/models/app_model.dart';
 import 'package:en_passant/models/match_model.dart';
 import 'package:en_passant/models/player.dart';
+import 'package:en_passant/models/sync_state_model.dart';
+import 'package:en_passant/services/offline_cache_service.dart';
+import 'package:en_passant/services/sync_service.dart';
 
 class MatchHistoryProvider extends ChangeNotifier {
   final FirestoreService _firestoreService;
+  final OfflineCacheService _cacheService;
+  final SyncService _syncService;
 
   StreamSubscription<List<MatchModel>>? _subscription;
   List<MatchModel> _matches = [];
@@ -19,8 +24,13 @@ class MatchHistoryProvider extends ChangeNotifier {
   String? _activeUserId;
   final Set<String> _savedGameFingerprints = {};
 
-  MatchHistoryProvider({FirestoreService? firestoreService})
-      : _firestoreService = firestoreService ?? FirestoreService();
+  MatchHistoryProvider({
+    FirestoreService? firestoreService,
+    OfflineCacheService? cacheService,
+    SyncService? syncService,
+  })  : _firestoreService = firestoreService ?? FirestoreService(),
+        _cacheService = cacheService ?? OfflineCacheService(),
+        _syncService = syncService ?? SyncService();
 
   List<MatchModel> get matches => List.unmodifiable(_matches);
   bool get isLoading => _isLoading;
@@ -43,16 +53,20 @@ class MatchHistoryProvider extends ChangeNotifier {
 
     _isLoading = true;
     scheduleMicrotask(notifyListeners);
+    unawaited(_loadCachedMatches(userId));
     _subscription = _firestoreService.watchMatchHistory(userId).listen(
       (matches) {
         _matches = _dedupeMatches(matches);
         _isLoading = false;
         _errorMessage = null;
+        unawaited(_cacheService.saveMatches(userId, _matches));
         notifyListeners();
       },
       onError: (_) {
         _isLoading = false;
-        _errorMessage = 'Could not load match history.';
+        _errorMessage = _matches.isEmpty
+            ? 'Could not load match history.'
+            : 'Showing cached match history.';
         notifyListeners();
       },
     );
@@ -68,8 +82,15 @@ class MatchHistoryProvider extends ChangeNotifier {
       _matches =
           _dedupeMatches(await _firestoreService.getMatchHistory(userId));
       _errorMessage = null;
+      await _cacheService.saveMatches(userId, _matches);
     } on Object {
-      _errorMessage = 'Could not refresh match history.';
+      final cached = await _cacheService.getMatches(userId);
+      if (cached.isNotEmpty) {
+        _matches = _dedupeMatches(cached);
+        _errorMessage = 'Showing cached match history.';
+      } else {
+        _errorMessage = 'Could not refresh match history.';
+      }
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -90,15 +111,33 @@ class MatchHistoryProvider extends ChangeNotifier {
 
     try {
       final match = _matchFromAppModel(userId: userId, appModel: appModel);
+      _matches = _dedupeMatches([match, ..._matches]);
+      await _cacheService.saveMatches(userId, _matches);
       await _firestoreService.saveMatch(match);
       _errorMessage = null;
     } on Object {
-      _savedGameFingerprints.remove(fingerprint);
-      _errorMessage = 'Match completed, but history could not be saved.';
+      final match = _matchFromAppModel(userId: userId, appModel: appModel);
+      await _syncService.enqueue(
+        SyncActionModel.create(
+          type: SyncActionType.saveMatch,
+          userId: userId,
+          payload: match.toMap(),
+        ),
+      );
+      _errorMessage = 'Match saved locally. It will sync automatically.';
     } finally {
       _isSaving = false;
       notifyListeners();
     }
+  }
+
+  Future<void> _loadCachedMatches(String userId) async {
+    final cached = await _cacheService.getMatches(userId);
+    if (cached.isEmpty || _matches.isNotEmpty) return;
+    _matches = _dedupeMatches(cached);
+    _isLoading = false;
+    _errorMessage = 'Showing cached match history.';
+    notifyListeners();
   }
 
   String _fingerprint(String userId, AppModel appModel) {

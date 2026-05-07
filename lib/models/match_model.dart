@@ -79,15 +79,22 @@ class MatchModel {
     DocumentSnapshot<Map<String, dynamic>> snapshot,
   ) {
     final data = snapshot.data() ?? {};
+    return MatchModel.fromMap({...data, 'id': snapshot.id});
+  }
+
+  factory MatchModel.fromMap(Map<String, dynamic> data) {
     return MatchModel(
-      id: snapshot.id,
+      id: data['id'] as String? ?? '',
       userId: data['userId'] as String? ?? '',
       winner: data['winner'] as String? ?? 'Unknown',
       gameMode: data['gameMode'] as String? ?? 'Play vs AI',
       aiDifficulty: data['aiDifficulty'] as int? ?? 0,
       duration: Duration(seconds: data['durationSeconds'] as int? ?? 0),
       moveCount: data['moveCount'] as int? ?? 0,
-      timestamp: (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      timestamp: data['timestamp'] is Timestamp
+          ? (data['timestamp'] as Timestamp).toDate()
+          : DateTime.tryParse(data['timestamp'] as String? ?? '') ??
+              DateTime.now(),
       playerColor: data['playerColor'] as String? ?? 'White',
       result: _parseResult(data['result'] as String?),
       openingFamily: data['openingFamily'] as String? ?? 'Unclassified',
@@ -100,6 +107,27 @@ class MatchModel {
               .toList() ??
           const [],
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'userId': userId,
+      'winner': winner,
+      'gameMode': gameMode,
+      'aiDifficulty': aiDifficulty,
+      'durationSeconds': duration.inSeconds,
+      'moveCount': moveCount,
+      'timestamp': timestamp.toIso8601String(),
+      'playerColor': playerColor,
+      'result': result.name,
+      'openingFamily': openingFamily,
+      'lossPhase': lossPhase,
+      'aggressionScore': aggressionScore,
+      'defenseScore': defenseScore,
+      'averageMoveSeconds': averageMoveSeconds,
+      'moveHistory': moveHistory,
+    };
   }
 
   Map<String, dynamic> toFirestore() {

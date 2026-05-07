@@ -83,8 +83,12 @@ class CoachInsightModel {
     DocumentSnapshot<Map<String, dynamic>> snapshot,
   ) {
     final data = snapshot.data() ?? {};
+    return CoachInsightModel.fromMap({...data, 'id': snapshot.id});
+  }
+
+  factory CoachInsightModel.fromMap(Map<String, dynamic> data) {
     return CoachInsightModel(
-      id: snapshot.id,
+      id: data['id'] as String? ?? '',
       kind: _parseKind(data['kind'] as String?),
       category: _parseCategory(data['category'] as String?),
       title: data['title'] as String? ?? 'Coach insight',
@@ -95,9 +99,28 @@ class CoachInsightModel {
       metricLabel: data['metricLabel'] as String? ?? '',
       metricValue: data['metricValue'] as String? ?? '',
       isPositive: data['isPositive'] as bool? ?? true,
-      generatedAt:
-          (data['generatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      generatedAt: data['generatedAt'] is Timestamp
+          ? (data['generatedAt'] as Timestamp).toDate()
+          : DateTime.tryParse(data['generatedAt'] as String? ?? '') ??
+              DateTime.now(),
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'kind': kind.name,
+      'category': category.name,
+      'title': title,
+      'message': message,
+      'actionLabel': actionLabel,
+      'priority': priority,
+      'confidence': confidence,
+      'metricLabel': metricLabel,
+      'metricValue': metricValue,
+      'isPositive': isPositive,
+      'generatedAt': generatedAt.toIso8601String(),
+    };
   }
 
   Map<String, dynamic> toFirestore() {

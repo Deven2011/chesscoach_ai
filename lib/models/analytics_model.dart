@@ -79,6 +79,63 @@ class AnalyticsModel {
     );
   }
 
+  factory AnalyticsModel.fromMap(Map<String, dynamic> map) {
+    final matches = (map['recentMatches'] as List<dynamic>? ?? [])
+        .whereType<Map>()
+        .map((match) => MatchModel.fromMap(Map<String, dynamic>.from(match)))
+        .toList();
+
+    return AnalyticsModel(
+      totalMatches: map['totalMatches'] as int? ?? 0,
+      wins: map['wins'] as int? ?? 0,
+      losses: map['losses'] as int? ?? 0,
+      draws: map['draws'] as int? ?? 0,
+      currentStreak: map['currentStreak'] as int? ?? 0,
+      averageDuration:
+          Duration(seconds: map['averageDurationSeconds'] as int? ?? 0),
+      winRate: (map['winRate'] as num?)?.toDouble() ?? 0,
+      difficultyPerformance:
+          _difficultyPerformanceFromMap(map['difficultyPerformance']),
+      resultCounts: Map<String, int>.from(map['resultCounts'] as Map? ?? {}),
+      insights: List<String>.from(map['insights'] as List? ?? []),
+      recentMatches: matches,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'totalMatches': totalMatches,
+      'wins': wins,
+      'losses': losses,
+      'draws': draws,
+      'currentStreak': currentStreak,
+      'averageDurationSeconds': averageDuration.inSeconds,
+      'winRate': winRate,
+      'difficultyPerformance': difficultyPerformance.map(
+        (key, value) => MapEntry(key.toString(), value.toMap()),
+      ),
+      'resultCounts': resultCounts,
+      'insights': insights,
+      'recentMatches': recentMatches.map((match) => match.toMap()).toList(),
+    };
+  }
+
+  static Map<int, DifficultyPerformance> _difficultyPerformanceFromMap(
+    Object? value,
+  ) {
+    final data = value as Map? ?? {};
+    return data.map((key, rawValue) {
+      final map = Map<String, dynamic>.from(rawValue as Map? ?? {});
+      final difficulty = int.tryParse(key.toString()) ??
+          (map['difficulty'] as int?) ??
+          0;
+      return MapEntry(
+        difficulty,
+        DifficultyPerformance.fromMap(map, fallbackDifficulty: difficulty),
+      );
+    });
+  }
+
   static int _currentWinStreak(List<MatchModel> sortedMatches) {
     var streak = 0;
     for (final match in sortedMatches) {
@@ -214,4 +271,25 @@ class DifficultyPerformance {
     required this.wins,
     required this.winRate,
   });
+
+  factory DifficultyPerformance.fromMap(
+    Map<String, dynamic> map, {
+    int fallbackDifficulty = 0,
+  }) {
+    return DifficultyPerformance(
+      difficulty: map['difficulty'] as int? ?? fallbackDifficulty,
+      matches: map['matches'] as int? ?? 0,
+      wins: map['wins'] as int? ?? 0,
+      winRate: (map['winRate'] as num?)?.toDouble() ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'difficulty': difficulty,
+      'matches': matches,
+      'wins': wins,
+      'winRate': winRate,
+    };
+  }
 }

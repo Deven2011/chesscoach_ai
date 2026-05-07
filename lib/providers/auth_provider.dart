@@ -4,11 +4,16 @@ import 'package:flutter/foundation.dart';
 
 import 'package:en_passant/firebase/auth_service.dart';
 import 'package:en_passant/firebase/firestore_service.dart';
+import 'package:en_passant/models/sync_state_model.dart';
 import 'package:en_passant/models/user_model.dart';
+import 'package:en_passant/services/offline_cache_service.dart';
+import 'package:en_passant/services/sync_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService;
   final FirestoreService _firestoreService;
+  final OfflineCacheService _cacheService;
+  final SyncService _syncService;
 
   StreamSubscription<UserModel?>? _authSubscription;
   UserModel? _user;
@@ -20,8 +25,12 @@ class AuthProvider extends ChangeNotifier {
   AuthProvider({
     AuthService? authService,
     FirestoreService? firestoreService,
+    OfflineCacheService? cacheService,
+    SyncService? syncService,
   })  : _authService = authService ?? AuthService(),
-        _firestoreService = firestoreService ?? FirestoreService() {
+        _firestoreService = firestoreService ?? FirestoreService(),
+        _cacheService = cacheService ?? OfflineCacheService(),
+        _syncService = syncService ?? SyncService() {
     _authSubscription = _authService.authStateChanges().listen(
       _completeInitialization,
       onError: (_) {
@@ -142,10 +151,17 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> _saveProfileSafely(UserModel user) async {
+    await _cacheService.saveUserProfile(user);
     try {
       await _firestoreService.createOrUpdateUser(user);
     } on Object {
-      // Auth remains the source of truth; profile sync can recover later.
+      await _syncService.enqueue(
+        SyncActionModel.create(
+          type: SyncActionType.saveUserProfile,
+          userId: user.uid,
+          payload: user.toMap(),
+        ),
+      );
     }
   }
 

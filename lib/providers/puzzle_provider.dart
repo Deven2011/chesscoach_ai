@@ -6,14 +6,19 @@ import 'package:en_passant/firebase/firestore_service.dart';
 import 'package:en_passant/models/puzzle_model.dart';
 import 'package:en_passant/models/puzzle_attempt_model.dart';
 import 'package:en_passant/models/puzzle_progress_model.dart';
+import 'package:en_passant/models/sync_state_model.dart';
 import 'package:en_passant/puzzles/puzzle_engine.dart';
 import 'package:en_passant/puzzles/puzzle_generator.dart';
 import 'package:en_passant/puzzles/puzzle_validator.dart';
 import 'package:en_passant/puzzles/puzzle_progress_tracker.dart';
+import 'package:en_passant/services/offline_cache_service.dart';
+import 'package:en_passant/services/sync_service.dart';
 
 /// Provider for managing puzzle state and interactions
 class PuzzleProvider extends ChangeNotifier {
   final FirestoreService _firestoreService;
+  final OfflineCacheService _cacheService;
+  final SyncService _syncService;
   final PuzzleEngine _engine = PuzzleEngine();
   StreamSubscription<PuzzleProgressModel?>? _progressSubscription;
 
@@ -31,8 +36,13 @@ class PuzzleProvider extends ChangeNotifier {
   String? _activeUserId;
   final Set<String> _savedAttemptKeys = {};
 
-  PuzzleProvider({FirestoreService? firestoreService})
-      : _firestoreService = firestoreService ?? FirestoreService();
+  PuzzleProvider({
+    FirestoreService? firestoreService,
+    OfflineCacheService? cacheService,
+    SyncService? syncService,
+  })  : _firestoreService = firestoreService ?? FirestoreService(),
+        _cacheService = cacheService ?? OfflineCacheService(),
+        _syncService = syncService ?? SyncService();
 
   // Getters
   PuzzleModel? get currentPuzzle => _currentPuzzle;
@@ -71,12 +81,14 @@ class PuzzleProvider extends ChangeNotifier {
 
     _isLoading = true;
     scheduleMicrotask(notifyListeners);
+    unawaited(_loadCachedProgress(userId));
     _progressSubscription =
         _firestoreService.watchPuzzleProgress(userId).listen(
       (progress) {
         _userProgress = progress ?? PuzzleProgressModel.empty(userId);
         _isLoading = false;
         _errorMessage = null;
+        unawaited(_cacheService.savePuzzleProgress(userId, _userProgress!));
         notifyListeners();
       },
       onError: (_) {
@@ -103,6 +115,9 @@ class PuzzleProvider extends ChangeNotifier {
   /// Loads user progress from data
   void loadProgress(PuzzleProgressModel progress) {
     _userProgress = progress;
+    if (_activeUserId != null) {
+      unawaited(_cacheService.savePuzzleProgress(_activeUserId!, progress));
+    }
     notifyListeners();
   }
 
@@ -305,6 +320,11 @@ class PuzzleProvider extends ChangeNotifier {
     );
 
     _attemptHistory.insert(0, attempt);
+    if (_activeUserId != null) {
+      unawaited(
+        _cacheService.savePuzzleProgress(_activeUserId!, _userProgress!),
+      );
+    }
     unawaited(_persistAttemptAndProgress(attempt));
     notifyListeners();
   }
@@ -376,6 +396,15 @@ class PuzzleProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> _loadCachedProgress(String userId) async {
+    final cached = await _cacheService.getPuzzleProgress(userId);
+    if (cached == null || _userProgress != null) return;
+    _userProgress = cached;
+    _isLoading = false;
+    _errorMessage = 'Showing cached puzzle progress.';
+    notifyListeners();
+  }
+
   Future<void> _persistAttemptAndProgress(PuzzleAttemptModel attempt) async {
     final userId = _activeUserId;
     final progress = _userProgress;
@@ -397,7 +426,21 @@ class PuzzleProvider extends ChangeNotifier {
       );
     } on Object {
       _savedAttemptKeys.remove(attemptKey);
-      _errorMessage = 'Puzzle solved, but progress could not be saved.';
+      await _syncService.enqueue(
+        SyncActionModel.create(
+          type: SyncActionType.savePuzzleAttempt,
+          userId: userId,
+          payload: attempt.toMap(),
+        ),
+      );
+      await _syncService.enqueue(
+        SyncActionModel.create(
+          type: SyncActionType.savePuzzleProgress,
+          userId: userId,
+          payload: progress.toMap(),
+        ),
+      );
+      _errorMessage = 'Puzzle progress saved locally. It will sync soon.';
       notifyListeners();
     }
   }
