@@ -149,7 +149,18 @@ class MatchHistoryProvider extends ChangeNotifier {
       aggressionScore: profile.aggressionScore,
       defenseScore: profile.defenseScore,
       averageMoveSeconds: profile.averageMoveSeconds,
+      moveHistory: _moveHistory(appModel),
     );
+  }
+
+  List<String> _moveHistory(AppModel appModel) {
+    final history = <String>[];
+    for (final meta in appModel.moveMetaList) {
+      final move = meta.move;
+      if (move == null) continue;
+      history.add('${move.from}-${move.to}-${move.promotionType.index}');
+    }
+    return history;
   }
 
   _GameplayProfile _gameplayProfile(AppModel appModel) {

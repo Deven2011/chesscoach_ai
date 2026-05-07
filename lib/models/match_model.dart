@@ -18,6 +18,7 @@ class MatchModel {
   final double aggressionScore;
   final double defenseScore;
   final double averageMoveSeconds;
+  final List<String> moveHistory;
 
   const MatchModel({
     required this.id,
@@ -35,6 +36,7 @@ class MatchModel {
     this.aggressionScore = 0,
     this.defenseScore = 0,
     this.averageMoveSeconds = 0,
+    this.moveHistory = const [],
   });
 
   factory MatchModel.completed({
@@ -51,6 +53,7 @@ class MatchModel {
     double aggressionScore = 0,
     double defenseScore = 0,
     double averageMoveSeconds = 0,
+    List<String> moveHistory = const [],
   }) {
     return MatchModel(
       id: '',
@@ -68,6 +71,7 @@ class MatchModel {
       aggressionScore: aggressionScore,
       defenseScore: defenseScore,
       averageMoveSeconds: averageMoveSeconds,
+      moveHistory: moveHistory,
     );
   }
 
@@ -91,6 +95,10 @@ class MatchModel {
       aggressionScore: (data['aggressionScore'] as num?)?.toDouble() ?? 0,
       defenseScore: (data['defenseScore'] as num?)?.toDouble() ?? 0,
       averageMoveSeconds: (data['averageMoveSeconds'] as num?)?.toDouble() ?? 0,
+      moveHistory: (data['moveHistory'] as List<dynamic>?)
+              ?.whereType<String>()
+              .toList() ??
+          const [],
     );
   }
 
@@ -110,6 +118,7 @@ class MatchModel {
       'aggressionScore': aggressionScore,
       'defenseScore': defenseScore,
       'averageMoveSeconds': averageMoveSeconds,
+      'moveHistory': moveHistory,
     };
   }
 
@@ -130,6 +139,7 @@ class MatchModel {
       aggressionScore: aggressionScore,
       defenseScore: defenseScore,
       averageMoveSeconds: averageMoveSeconds,
+      moveHistory: moveHistory,
     );
   }
 

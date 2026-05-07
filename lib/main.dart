@@ -16,6 +16,7 @@ import 'package:en_passant/providers/analytics_provider.dart';
 import 'package:en_passant/providers/auth_provider.dart';
 import 'package:en_passant/providers/match_history_provider.dart';
 import 'package:en_passant/providers/realtime_coach_provider.dart';
+import 'package:en_passant/providers/replay_provider.dart';
 import 'package:en_passant/screens/auth/auth_gate.dart';
 import 'package:en_passant/core/theme/app_theme.dart';
 
@@ -32,6 +33,7 @@ void main() async {
         ChangeNotifierProvider(create: (context) => AppModel()),
         ChangeNotifierProvider(create: (context) => AuthProvider()),
         ChangeNotifierProvider(create: (context) => RealtimeCoachProvider()),
+        ChangeNotifierProvider(create: (context) => ReplayProvider()),
         ChangeNotifierProxyProvider<AuthProvider, MatchHistoryProvider>(
           create: (context) => MatchHistoryProvider(),
           update: (context, auth, provider) {

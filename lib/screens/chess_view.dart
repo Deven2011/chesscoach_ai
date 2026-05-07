@@ -9,6 +9,8 @@ import 'package:en_passant/models/app_model.dart';
 import 'package:en_passant/providers/auth_provider.dart' as auth;
 import 'package:en_passant/providers/match_history_provider.dart';
 import 'package:en_passant/providers/realtime_coach_provider.dart';
+import 'package:en_passant/providers/replay_provider.dart';
+import 'package:en_passant/screens/replay/replay_screen.dart';
 import 'package:en_passant/widgets/chess_view/chess_board_widget.dart';
 import 'package:en_passant/widgets/chess_view/game_info_and_controls.dart';
 import 'package:en_passant/widgets/chess_view/game_info_and_controls/game_status.dart';
@@ -176,6 +178,11 @@ class _ChessViewState extends State<ChessView> with WidgetsBindingObserver {
                           onOpenPanel: () => _showCoachPanel(context, appModel),
                         ),
                       ),
+                    if (appModel.gameOver)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                        child: _PostGameReviewButton(appModel: appModel),
+                      ),
                     GameInfoAndControls(appModel),
                   ],
                 ),
@@ -330,6 +337,47 @@ class _CoachBoardStage extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _PostGameReviewButton extends StatelessWidget {
+  final AppModel appModel;
+
+  const _PostGameReviewButton({required this.appModel});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton.icon(
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.secondary,
+          foregroundColor: AppColors.onSecondary,
+          padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+        ),
+        onPressed: () {
+          final reviews = context.read<RealtimeCoachProvider>().reviews;
+          context.read<ReplayProvider>().loadFromGame(
+                appModel: appModel,
+                reviews: reviews,
+              );
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const ReplayScreen()),
+          );
+        },
+        icon: const Icon(Icons.insights_rounded),
+        label: Text(
+          'REVIEW & REPLAY GAME',
+          style: AppTextStyles.button(context).copyWith(
+            color: AppColors.onSecondary,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ),
     );
   }
 }
