@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "408391858165",
+    "project_id": "chesscoach-ai-3f76e",
+    "storage_bucket": "chesscoach-ai-3f76e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:408391858165:android:23cb2a8ae3755ec79512bc",
+        "android_client_info": {
+          "package_name": "com.harshvardhan.chesscoachai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZSEKOwarQ4bM4YbI_wLvAPZ9A0q0CjgQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
