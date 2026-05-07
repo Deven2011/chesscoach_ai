@@ -86,9 +86,17 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<bool> sendPasswordResetEmail(String email) async {
-    return _runAuthAction(() async {
+    _errorMessage = null;
+    try {
       await _authService.sendPasswordResetEmail(email);
-    });
+      return true;
+    } on AuthServiceException catch (error) {
+      _errorMessage = error.message;
+      return false;
+    } on Object {
+      _errorMessage = 'Something went wrong. Please try again.';
+      return false;
+    }
   }
 
   Future<void> signOut() async {

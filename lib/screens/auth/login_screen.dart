@@ -19,6 +19,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _showResetForm = false;
+  bool _isSendingReset = false;
 
   @override
   void dispose() {
@@ -32,9 +34,10 @@ class _LoginScreenState extends State<LoginScreen> {
     final scale = AppTextStyles.responsiveScale(context);
 
     return AuthScaffold(
-      title: 'Welcome back',
-      subtitle:
-          'Sign in to continue your training, saved progress, and match history.',
+      title: _showResetForm ? 'Reset password' : 'Welcome back',
+      subtitle: _showResetForm
+          ? 'Enter your email and Firebase will send a reset link.'
+          : 'Sign in to continue your training, saved progress, and match history.',
       child: Selector<AuthProvider, bool>(
         selector: (_, provider) => provider.isLoading,
         builder: (context, isLoading, child) {
@@ -51,74 +54,75 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.emailAddress,
                   validator: _validateEmail,
                 ),
-                SizedBox(height: 16 * scale),
-                AuthTextField(
-                  controller: _passwordController,
-                  label: 'Password',
-                  hint: 'Enter your password',
-                  icon: Icons.lock_outline_rounded,
-                  obscureText: _obscurePassword,
-                  textInputAction: TextInputAction.done,
-                  validator: _validatePassword,
-                  onFieldSubmitted: (_) => _submit(),
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() => _obscurePassword = !_obscurePassword);
-                    },
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_rounded
-                          : Icons.visibility_off_rounded,
+                if (_showResetForm) ...[
+                  SizedBox(height: 12 * scale),
+                  Text(
+                    'Use the email tied to your ChessCoach AI account.',
+                    style: AppTextStyles.body2(context).copyWith(
                       color: AppColors.onSurfaceVariant,
                     ),
                   ),
-                ),
-                SizedBox(height: 8 * scale),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: AuthTextButton(
-                    text: 'Forgot password?',
-                    onPressed: isLoading ? null : _showForgotPasswordSheet,
+                  SizedBox(height: 16 * scale),
+                  AuthPrimaryButton(
+                    label: 'SEND RESET LINK',
+                    icon: Icons.mark_email_read_rounded,
+                    isLoading: _isSendingReset,
+                    onPressed: _isSendingReset ? null : _sendPasswordReset,
                   ),
-                ),
-                SizedBox(height: 16 * scale),
-                AuthPrimaryButton(
-                  label: 'SIGN IN',
-                  icon: Icons.arrow_forward_rounded,
-                  isLoading: isLoading,
-                  onPressed: isLoading ? null : _submit,
-                ),
-                SizedBox(height: 18 * scale),
-                _AuthSwitchPrompt(
-                  prompt: 'New to ChessCoach AI?',
-                  action: 'Create account',
-                  onPressed: isLoading
-                      ? null
-                      : () {
-                          Navigator.of(context).push(
-                            PageRouteBuilder(
-                              pageBuilder: (_, animation, __) =>
-                                  const SignupScreen(),
-                              transitionsBuilder: (_, animation, __, child) {
-                                final curved = CurvedAnimation(
-                                  parent: animation,
-                                  curve: Curves.easeOutQuart,
-                                );
-                                return FadeTransition(
-                                  opacity: curved,
-                                  child: SlideTransition(
-                                    position: Tween<Offset>(
-                                      begin: const Offset(0.04, 0),
-                                      end: Offset.zero,
-                                    ).animate(curved),
-                                    child: child,
-                                  ),
-                                );
-                              },
-                            ),
-                          );
-                        },
-                ),
+                  SizedBox(height: 10 * scale),
+                  AuthTextButton(
+                    text: 'Back to sign in',
+                    onPressed: _isSendingReset
+                        ? null
+                        : () => setState(() => _showResetForm = false),
+                  ),
+                ] else ...[
+                  SizedBox(height: 16 * scale),
+                  AuthTextField(
+                    controller: _passwordController,
+                    label: 'Password',
+                    hint: 'Enter your password',
+                    icon: Icons.lock_outline_rounded,
+                    obscureText: _obscurePassword,
+                    textInputAction: TextInputAction.done,
+                    validator: _validatePassword,
+                    onFieldSubmitted: (_) => _submit(),
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        setState(() => _obscurePassword = !_obscurePassword);
+                      },
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_rounded
+                            : Icons.visibility_off_rounded,
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 8 * scale),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: AuthTextButton(
+                      text: 'Forgot password?',
+                      onPressed: isLoading
+                          ? null
+                          : () => setState(() => _showResetForm = true),
+                    ),
+                  ),
+                  SizedBox(height: 16 * scale),
+                  AuthPrimaryButton(
+                    label: 'SIGN IN',
+                    icon: Icons.arrow_forward_rounded,
+                    isLoading: isLoading,
+                    onPressed: isLoading ? null : _submit,
+                  ),
+                  SizedBox(height: 18 * scale),
+                  _AuthSwitchPrompt(
+                    prompt: 'New to ChessCoach AI?',
+                    action: 'Create account',
+                    onPressed: isLoading ? null : _openSignup,
+                  ),
+                ],
               ],
             ),
           );
@@ -141,83 +145,48 @@ class _LoginScreenState extends State<LoginScreen> {
     _showMessage(auth.errorMessage ?? 'Unable to sign in.');
   }
 
-  Future<void> _showForgotPasswordSheet() async {
-    final emailController = TextEditingController(text: _emailController.text);
-    final formKey = GlobalKey<FormState>();
+  Future<void> _sendPasswordReset() async {
+    FocusScope.of(context).unfocus();
+    if (!_formKey.currentState!.validate()) return;
 
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (sheetContext) {
-        return Padding(
-          padding: EdgeInsets.fromLTRB(
-            22,
-            22,
-            22,
-            22 + MediaQuery.of(sheetContext).viewInsets.bottom,
-          ),
-          child: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Reset password',
-                  style: AppTextStyles.headline3(sheetContext).copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Enter your email and Firebase will send a reset link.',
-                  style: AppTextStyles.body2(sheetContext).copyWith(
-                    color: AppColors.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                AuthTextField(
-                  controller: emailController,
-                  label: 'Email',
-                  hint: 'you@example.com',
-                  icon: Icons.mail_outline_rounded,
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.done,
-                  validator: _validateEmail,
-                ),
-                const SizedBox(height: 18),
-                AuthPrimaryButton(
-                  label: 'SEND RESET LINK',
-                  icon: Icons.mark_email_read_rounded,
-                  isLoading: false,
-                  onPressed: () async {
-                    if (!formKey.currentState!.validate()) return;
-                    final auth = context.read<AuthProvider>();
-                    final sent = await auth.sendPasswordResetEmail(
-                      emailController.text,
-                    );
-                    if (!mounted || !sheetContext.mounted) return;
-                    Navigator.pop(sheetContext);
-                    _showMessage(
-                      sent
-                          ? 'Password reset link sent.'
-                          : auth.errorMessage ?? 'Could not send reset link.',
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+    setState(() => _isSendingReset = true);
+    final auth = context.read<AuthProvider>();
+    final sent = await auth.sendPasswordResetEmail(_emailController.text);
+
+    if (!mounted) return;
+    setState(() {
+      _isSendingReset = false;
+      if (sent) _showResetForm = false;
+    });
+    _showMessage(
+      sent
+          ? 'Password reset link sent.'
+          : auth.errorMessage ?? 'Could not send reset link.',
     );
+  }
 
-    emailController.dispose();
+  void _openSignup() {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: (_, animation, __) => const SignupScreen(),
+        transitionsBuilder: (_, animation, __, child) {
+          final curved = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutQuart,
+          );
+          return FadeTransition(
+            opacity: curved,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.04, 0),
+                end: Offset.zero,
+              ).animate(curved),
+              child: child,
+            ),
+          );
+        },
+      ),
+    );
   }
 
   String? _validateEmail(String? value) {
