@@ -9,13 +9,21 @@ import 'package:en_passant/core/theme/app_text_styles.dart';
 class PromotionOption extends StatelessWidget {
   final AppModel appModel;
   final ChessPieceType promotionType;
+  final double? size;
 
-  const PromotionOption(this.appModel, this.promotionType, {super.key});
+  const PromotionOption(
+    this.appModel,
+    this.promotionType, {
+    super.key,
+    this.size,
+  });
 
   @override
   Widget build(BuildContext context) {
     final scale = AppTextStyles.responsiveScale(context);
-    
+    final optionSize = size ?? 70 * scale;
+    final pieceSize = optionSize * 0.63;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -26,8 +34,8 @@ class PromotionOption extends StatelessWidget {
         },
         borderRadius: BorderRadius.circular(16 * scale),
         child: Container(
-          width: 70 * scale,
-          height: 70 * scale,
+          width: optionSize,
+          height: optionSize,
           decoration: BoxDecoration(
             color: AppColors.surfaceRaised,
             borderRadius: BorderRadius.circular(16 * scale),
@@ -38,8 +46,8 @@ class PromotionOption extends StatelessWidget {
           ),
           child: Center(
             child: Image(
-              height: 44 * scale,
-              width: 44 * scale,
+              height: pieceSize,
+              width: pieceSize,
               image: AssetImage(
                 'assets/images/pieces/${formatPieceTheme(appModel.pieceTheme)}' +
                     '/${pieceTypeToString(promotionType)}_${_playerColor()}.png',

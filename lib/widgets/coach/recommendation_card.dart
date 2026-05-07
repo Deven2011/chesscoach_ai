@@ -8,10 +8,12 @@ import 'package:en_passant/models/coach_insight_model.dart';
 
 class RecommendationCard extends StatelessWidget {
   final CoachInsightModel recommendation;
+  final VoidCallback? onAction;
 
   const RecommendationCard({
     super.key,
     required this.recommendation,
+    this.onAction,
   });
 
   @override
@@ -67,13 +69,28 @@ class RecommendationCard extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      recommendation.actionLabel,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.caption(context).copyWith(
-                        color: color,
-                        fontWeight: FontWeight.w900,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: onAction,
+                        icon: const Icon(Icons.arrow_forward_rounded),
+                        label: Text(
+                          recommendation.actionLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        style: TextButton.styleFrom(
+                          foregroundColor: color,
+                          minimumSize: const Size(0, 34),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 0,
+                            vertical: 4,
+                          ),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          textStyle: AppTextStyles.caption(context).copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
                       ),
                     ),
                   ),

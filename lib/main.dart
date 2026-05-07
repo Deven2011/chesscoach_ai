@@ -15,6 +15,7 @@ import 'package:en_passant/providers/ai_coach_provider.dart';
 import 'package:en_passant/providers/analytics_provider.dart';
 import 'package:en_passant/providers/auth_provider.dart';
 import 'package:en_passant/providers/match_history_provider.dart';
+import 'package:en_passant/providers/puzzle_provider.dart';
 import 'package:en_passant/providers/realtime_coach_provider.dart';
 import 'package:en_passant/providers/replay_provider.dart';
 import 'package:en_passant/screens/auth/auth_gate.dart';
@@ -34,6 +35,14 @@ void main() async {
         ChangeNotifierProvider(create: (context) => AuthProvider()),
         ChangeNotifierProvider(create: (context) => RealtimeCoachProvider()),
         ChangeNotifierProvider(create: (context) => ReplayProvider()),
+        ChangeNotifierProxyProvider<AuthProvider, PuzzleProvider>(
+          create: (context) => PuzzleProvider(),
+          update: (context, auth, provider) {
+            final puzzles = provider ?? PuzzleProvider();
+            puzzles.bindUser(auth.user?.uid);
+            return puzzles;
+          },
+        ),
         ChangeNotifierProxyProvider<AuthProvider, MatchHistoryProvider>(
           create: (context) => MatchHistoryProvider(),
           update: (context, auth, provider) {

@@ -53,8 +53,8 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'example api key',
-    appId: 'example app id',
+    apiKey: 'AIzaSyBZSEKOwarQ4bM4YbI_wLvAPZ9A0q0CjgQ',
+    appId: '1:408391858165:android:0c8e5b9a7c8d2f1b4c8e5b',
     messagingSenderId: '408391858165',
     projectId: 'chesscoach-ai-3f76e',
     storageBucket: 'chesscoach-ai-3f76e.firebasestorage.app',

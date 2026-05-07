@@ -5,6 +5,7 @@ import 'package:en_passant/core/theme/app_colors.dart';
 import 'package:en_passant/core/theme/app_text_styles.dart';
 import 'package:en_passant/models/coach_insight_model.dart';
 import 'package:en_passant/providers/ai_coach_provider.dart';
+import 'package:en_passant/screens/coach/coach_action_screen.dart';
 import 'package:en_passant/widgets/coach/coach_insight_card.dart';
 import 'package:en_passant/widgets/coach/improvement_tile.dart';
 import 'package:en_passant/widgets/coach/performance_summary_card.dart';
@@ -111,7 +112,11 @@ class _InsightList extends StatelessWidget {
         for (var index = 0; index < insights.length; index++)
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
-            child: CoachInsightCard(insight: insights[index], index: index),
+            child: CoachInsightCard(
+              insight: insights[index],
+              index: index,
+              onAction: () => _openCoachAction(context, insights[index]),
+            ),
           ),
       ],
     );
@@ -142,7 +147,10 @@ class _RecommendationGrid extends StatelessWidget {
                 .map(
                   (item) => Padding(
                     padding: const EdgeInsets.only(bottom: 10),
-                    child: RecommendationCard(recommendation: item),
+                    child: RecommendationCard(
+                      recommendation: item,
+                      onAction: () => _openCoachAction(context, item),
+                    ),
                   ),
                 )
                 .toList(),
@@ -157,12 +165,25 @@ class _RecommendationGrid extends StatelessWidget {
           mainAxisSpacing: 12,
           childAspectRatio: 1.58,
           children: recommendations
-              .map((item) => RecommendationCard(recommendation: item))
+              .map(
+                (item) => RecommendationCard(
+                  recommendation: item,
+                  onAction: () => _openCoachAction(context, item),
+                ),
+              )
               .toList(),
         );
       },
     );
   }
+}
+
+void _openCoachAction(BuildContext context, CoachInsightModel insight) {
+  Navigator.of(context).push(
+    AppScaffold.pageRoute(
+      child: CoachActionScreen(insight: insight),
+    ),
+  );
 }
 
 class _StrengthWeaknessList extends StatelessWidget {

@@ -9,11 +9,13 @@ import 'package:en_passant/models/coach_insight_model.dart';
 class CoachInsightCard extends StatelessWidget {
   final CoachInsightModel insight;
   final int index;
+  final VoidCallback? onAction;
 
   const CoachInsightCard({
     super.key,
     required this.insight,
     this.index = 0,
+    this.onAction,
   });
 
   @override
@@ -104,11 +106,25 @@ class CoachInsightCard extends StatelessWidget {
                       ),
                       if (insight.actionLabel.isNotEmpty) ...[
                         SizedBox(height: 10 * scale),
-                        Text(
-                          insight.actionLabel,
-                          style: AppTextStyles.caption(context).copyWith(
-                            color: color,
-                            fontWeight: FontWeight.w800,
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton.icon(
+                            onPressed: onAction,
+                            icon: const Icon(Icons.arrow_forward_rounded),
+                            label: Text(insight.actionLabel),
+                            style: TextButton.styleFrom(
+                              foregroundColor: color,
+                              minimumSize: const Size(0, 34),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 0,
+                                vertical: 4,
+                              ),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              textStyle:
+                                  AppTextStyles.caption(context).copyWith(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
                           ),
                         ),
                       ],

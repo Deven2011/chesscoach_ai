@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:en_passant/logic/chess_constants.dart';
 import 'package:en_passant/models/app_model.dart';
@@ -13,7 +15,7 @@ class PromotionDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scale = AppTextStyles.responsiveScale(context);
-    
+
     return Dialog(
       backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(
@@ -41,16 +43,29 @@ class PromotionDialog extends StatelessWidget {
               ),
             ),
             SizedBox(height: 24 * scale),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: PROMOTIONS
-                  .map(
-                    (promotionType) => PromotionOption(
-                      appModel,
-                      promotionType,
-                    ),
-                  )
-                  .toList(),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final gap = 6 * scale;
+                final availableWidth = constraints.maxWidth - gap * 3;
+                final optionSize = math.min(
+                  70 * scale,
+                  availableWidth / PROMOTIONS.length,
+                );
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (var index = 0; index < PROMOTIONS.length; index++) ...[
+                      if (index > 0) SizedBox(width: gap),
+                      PromotionOption(
+                        appModel,
+                        PROMOTIONS[index],
+                        size: optionSize,
+                      ),
+                    ],
+                  ],
+                );
+              },
             ),
           ],
         ),

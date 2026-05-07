@@ -4,6 +4,8 @@ import 'package:en_passant/ai_coach/ai_coach_engine.dart';
 import 'package:en_passant/models/analytics_model.dart';
 import 'package:en_passant/models/coach_insight_model.dart';
 import 'package:en_passant/models/match_model.dart';
+import 'package:en_passant/models/puzzle_attempt_model.dart';
+import 'package:en_passant/models/puzzle_progress_model.dart';
 import 'package:en_passant/models/user_model.dart';
 
 class FirestoreService {
@@ -29,6 +31,14 @@ class FirestoreService {
 
   DocumentReference<Map<String, dynamic>> coachSummaryRef(String userId) {
     return _users.doc(userId).collection('ai_coach').doc('summary');
+  }
+
+  CollectionReference<Map<String, dynamic>> puzzleAttemptsRef(String userId) {
+    return _users.doc(userId).collection('puzzle_attempts');
+  }
+
+  DocumentReference<Map<String, dynamic>> puzzleProgressRef(String userId) {
+    return _users.doc(userId).collection('puzzles').doc('progress');
   }
 
   Future<void> createOrUpdateUser(UserModel user) async {
@@ -142,5 +152,82 @@ class FirestoreService {
     }
 
     await batch.commit();
+  }
+
+  // Puzzle-related methods
+
+  Future<PuzzleAttemptModel> savePuzzleAttempt(
+    String userId,
+    PuzzleAttemptModel attempt,
+  ) async {
+    final doc = await puzzleAttemptsRef(userId).add(attempt.toFirestore());
+    return attempt.copyWith(id: doc.id);
+  }
+
+  Future<void> savePuzzleProgress({
+    required String userId,
+    required PuzzleProgressModel progress,
+  }) async {
+    await puzzleProgressRef(userId).set(
+      progress.toFirestore(),
+      SetOptions(merge: true),
+    );
+  }
+
+  Future<PuzzleProgressModel?> getPuzzleProgress(String userId) async {
+    final snapshot = await puzzleProgressRef(userId).get();
+    final data = snapshot.data();
+    if (data == null) return null;
+    return PuzzleProgressModel.fromMap({...data, 'id': snapshot.id});
+  }
+
+  Stream<PuzzleProgressModel?> watchPuzzleProgress(String userId) {
+    return puzzleProgressRef(userId).snapshots().map((snapshot) {
+      final data = snapshot.data();
+      if (data == null) return null;
+      return PuzzleProgressModel.fromMap({...data, 'id': snapshot.id});
+    });
+  }
+
+  Future<List<PuzzleAttemptModel>> getPuzzleAttempts(String userId) async {
+    final snapshot = await puzzleAttemptsRef(userId)
+        .orderBy('attemptedAt', descending: true)
+        .limit(100)
+        .get();
+
+    return snapshot.docs.map(PuzzleAttemptModel.fromFirestore).toList();
+  }
+
+  Stream<List<PuzzleAttemptModel>> watchPuzzleAttempts(String userId) {
+    return puzzleAttemptsRef(userId)
+        .orderBy('attemptedAt', descending: true)
+        .limit(100)
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map(PuzzleAttemptModel.fromFirestore).toList());
+  }
+
+  Future<PuzzleAttemptModel?> getLastPuzzleAttempt(String userId) async {
+    final snapshot = await puzzleAttemptsRef(userId)
+        .orderBy('attemptedAt', descending: true)
+        .limit(1)
+        .get();
+
+    if (snapshot.docs.isEmpty) return null;
+    return PuzzleAttemptModel.fromFirestore(snapshot.docs.first);
+  }
+
+  Future<bool> hasCompletedDailyPuzzleToday(String userId) async {
+    final progress = await getPuzzleProgress(userId);
+    if (progress == null) return false;
+    
+    if (progress.dailyPuzzleCompletedDate == null) return false;
+    
+    final today = DateTime.now();
+    final completed = progress.dailyPuzzleCompletedDate!;
+    
+    return today.year == completed.year &&
+        today.month == completed.month &&
+        today.day == completed.day;
   }
 }

@@ -110,7 +110,7 @@ class PerformanceSummaryCard extends StatelessWidget {
                     physics: const NeverScrollableScrollPhysics(),
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
-                    childAspectRatio: twoColumns ? 2.2 : 1.85,
+                    childAspectRatio: twoColumns ? 1.62 : 1.85,
                     children: [
                       _SummaryMetric(
                         label: 'Win Rate',
@@ -151,8 +151,13 @@ class _SummaryMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scale = AppTextStyles.responsiveScale(context);
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: EdgeInsets.symmetric(
+        horizontal: 12 * scale,
+        vertical: 8 * scale,
+      ),
       decoration: BoxDecoration(
         color: AppColors.surfaceDark.withValues(alpha: 0.45),
         borderRadius: BorderRadius.circular(14),
@@ -168,16 +173,18 @@ class _SummaryMetric extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.caption(context).copyWith(
               color: AppColors.onSurfaceVariant,
+              height: 1.15,
             ),
           ),
-          const SizedBox(height: 3),
+          SizedBox(height: 3 * scale),
           Text(
             value,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.body2(context).copyWith(
               color: Colors.white,
               fontWeight: FontWeight.w900,
+              height: 1.15,
             ),
           ),
         ],

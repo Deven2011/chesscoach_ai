@@ -8,6 +8,7 @@ import 'package:en_passant/screens/analytics/analytics_dashboard_screen.dart';
 import 'package:en_passant/screens/analytics/match_history_screen.dart';
 import 'package:en_passant/screens/chess_view.dart';
 import 'package:en_passant/screens/coach/ai_coach_dashboard_screen.dart';
+import 'package:en_passant/screens/puzzles/daily_puzzle_screen.dart';
 import 'package:en_passant/screens/settings_view.dart';
 import 'package:en_passant/screens/game_setup_view.dart';
 import 'package:en_passant/widgets/shared/app_scaffold.dart';
@@ -138,8 +139,9 @@ class _ActionCardsGridState extends State<ActionCardsGrid> {
   }
 
   void _navigateToPuzzle(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Daily Puzzle coming soon!')),
+    Navigator.push(
+      context,
+      AppScaffold.pageRoute(child: const DailyPuzzleScreen()),
     );
   }
 
