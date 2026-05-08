@@ -35,10 +35,6 @@ The app started as a polished local chess game and has grown into a mobile train
       <b>AI Coach</b><br/>
       Personalized performance summary, trends, focus areas, and improvement insights.
     </td>
-    <td width="33%" align="center">
-      <b>More Screens</b><br/>
-      Add match history, replay review, settings, and puzzle results as the UI evolves.
-    </td>
   </tr>
 </table>
 
