@@ -1,71 +1,75 @@
 # ChessCoach AI
 
-ChessCoach AI is a Flutter chess application that combines a complete playable chess game, a Flame-powered board, AI opponents, player analytics, daily tactical puzzles, replay review, Firebase authentication, offline-first sync, and a personalized coaching dashboard.
+ChessCoach AI is a Flutter chess training app that combines a playable chess engine, Flame-powered board rendering, Firebase-backed accounts, offline-first data sync, daily tactical puzzles, match analytics, replay review, and personalized AI coach insights.
 
-The project began as a polished offline chess app and has been expanded into a training-focused chess companion with match history, progress tracking, coach insights, and puzzle progression.
-
-## Highlights
-
-- Play chess against an AI opponent or in local two-player mode.
-- Choose AI difficulty across 5 levels.
-- Configure player side, time controls, hints, notation, board rotation, sound, and undo/redo.
-- Render the chess board and pieces with Flame.
-- Persist preferences and saved games locally.
-- Authenticate users with Firebase Auth.
-- Sync user profile, match history, analytics, coach reports, and puzzle progress with Cloud Firestore.
-- Continue using cached data when offline.
-- Review match history, analytics, replay timelines, and post-game feedback.
-- Train with a daily chess puzzle system, XP, streaks, hints, tiers, and progress history.
-- Personalize the experience with multiple board themes and piece themes.
+The app started as a polished local chess game and has grown into a mobile training companion for players who want to play, review, and improve from the same place.
 
 ## Screenshots
 
+Place screenshots in `assets/screenshots/` using the filenames shown below. These paths are already referenced by the README so they will render automatically on GitHub once the images are added.
+
 <table>
   <tr>
-    <td width="50%">
-      <b>Gameplay</b><br/>
-      Interactive chess board with Flame rendering, legal move validation, and visual feedback.
-      <img src="assets/screenshots/gameplay.png" alt="Gameplay Screen" width="100%">
-    </td>
-    <td width="50%">
-      <b>Analytics Dashboard</b><br/>
-      Comprehensive statistics with win rates, streaks, duration tracking, and difficulty analysis charts.
-      <img src="assets/screenshots/analytics.png" alt="Analytics Screen" width="100%">
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <b>Daily Puzzle</b><br/>
-      Tactical puzzle training with streak tracking, XP rewards, hints, and tactical theme descriptions.
-      <img src="assets/screenshots/puzzle.png" alt="Daily Puzzle Screen" width="100%">
-    </td>
-    <td width="50%">
-      <b>AI Coach</b><br/>
-      Personalized coaching insights with performance summary, strengths, weaknesses, and recommendations.
-      <img src="assets/screenshots/coach.png" alt="AI Coach Screen" width="100%">
-    </td>
-  </tr>
-  <tr>
-    <td colspan="2">
+    <td width="33%" align="center">
+      <img src="assets/screenshots/auth.png" alt="ChessCoach AI sign in screen" width="220"><br/>
       <b>Authentication</b><br/>
-      Firebase-backed sign in with email, password reset, and account creation.
-      <img src="assets/screenshots/auth.png" alt="Authentication Screen" width="50%">
+      Email sign in, password reset, and account creation.
+    </td>
+    <td width="33%" align="center">
+      <img src="assets/screenshots/gameplay.png" alt="ChessCoach AI gameplay board" width="220"><br/>
+      <b>Gameplay</b><br/>
+      Flame-rendered board, move hints, move history, restart, and exit controls.
+    </td>
+    <td width="33%" align="center">
+      <img src="assets/screenshots/daily-puzzle.png" alt="ChessCoach AI daily puzzle screen" width="220"><br/>
+      <b>Daily Puzzle</b><br/>
+      Tactical puzzle board with streak, XP, rating, category, and level metadata.
+    </td>
+  </tr>
+  <tr>
+    <td width="33%" align="center">
+      <img src="assets/screenshots/analytics.png" alt="ChessCoach AI analytics dashboard" width="220"><br/>
+      <b>Analytics</b><br/>
+      Win rate, streaks, match totals, average duration, and difficulty performance charts.
+    </td>
+    <td width="33%" align="center">
+      <img src="assets/screenshots/ai-coach.png" alt="ChessCoach AI coach dashboard" width="220"><br/>
+      <b>AI Coach</b><br/>
+      Personalized performance summary, trends, focus areas, and improvement insights.
+    </td>
+    <td width="33%" align="center">
+      <b>More Screens</b><br/>
+      Add match history, replay review, settings, and puzzle results as the UI evolves.
     </td>
   </tr>
 </table>
 
-## Current Feature Set
+## Highlights
+
+- Play chess against the built-in AI or a local two-player opponent.
+- Choose from 5 AI difficulty levels.
+- Configure side selection, time controls, sound, hints, notation, board rotation, and undo/redo.
+- Render the board and pieces with Flame.
+- Persist settings, saved games, and cached training data locally.
+- Sign in with Firebase Auth.
+- Sync profile, match history, analytics, coach reports, and puzzle progress with Cloud Firestore.
+- Keep using cached data while offline, then sync when connectivity returns.
+- Review analytics, replay timelines, critical moments, and post-game feedback.
+- Train with daily puzzles, XP rewards, streaks, hints, tiers, and progress history.
+- Customize the board and pieces with bundled themes.
+
+## Feature Set
 
 ### Chess Gameplay
 
 - Single-player games against the built-in chess AI.
 - Offline two-player mode on the same device.
-- Side selection: white, black, or random.
-- Optional timed games.
+- White, black, or random side selection.
+- Optional time controls.
 - Legal move validation, check, checkmate, stalemate, and promotion handling.
-- Move history with standard move notation support.
+- Move history with notation support.
 - Undo and redo support when enabled.
-- Visual move hints, latest move indicators, check indicators, and optional board coordinates.
+- Visual move hints, latest-move highlights, check indicators, and optional board coordinates.
 - Resume support for saved games.
 - Audio feedback for moves and game outcomes.
 
@@ -79,7 +83,7 @@ The project began as a polished offline chess app and has been expanded into a t
 - Transposition table support.
 - Piece-square tables and opening book support.
 
-Core AI files live in:
+Core AI implementation lives in:
 
 ```text
 lib/logic/move_calculation/
@@ -87,21 +91,18 @@ lib/logic/move_calculation/
 
 ### Daily Puzzle System
 
-The project includes a complete daily tactical puzzle module:
-
 - Daily puzzle rotation.
-- Puzzle validation using UCI move notation.
+- UCI move validation.
 - Multi-move puzzle progress tracking.
-- Tactical themes including checkmate, fork, pin, skewer, discovered attack, sacrifice, defense, and endgame tactics.
+- Tactical themes such as checkmate, fork, pin, skewer, discovered attack, sacrifice, defense, and endgame tactics.
 - Difficulty-based XP rewards.
 - Streak tracking and streak bonuses.
 - Tier progression from beginner levels toward advanced ranks.
 - Hint system with up to 3 hints per puzzle.
-- Puzzle result screen with completion feedback.
-- Puzzle history and performance analytics.
+- Puzzle result screen, history, and performance analytics.
 - Firestore-backed attempt and progress persistence.
 
-Puzzle implementation is organized under:
+Important files:
 
 ```text
 lib/puzzles/
@@ -113,37 +114,34 @@ lib/widgets/puzzles/
 
 ### Analytics And Match History
 
-ChessCoach AI tracks completed matches and turns them into useful progress data:
-
 - Total matches, wins, losses, draws, and win rate.
 - Current streak tracking.
 - Average game duration.
 - Recent match list.
-- Match metadata including game mode, AI difficulty, player color, duration, move count, result, opening family, and move history.
+- Match metadata for game mode, AI difficulty, player color, duration, move count, result, opening family, and move history.
 - Cached analytics for offline viewing.
 - Firestore analytics summary persistence.
 
-Analytics files include:
+Important files:
 
 ```text
 lib/models/analytics_model.dart
 lib/providers/analytics_provider.dart
+lib/providers/match_history_provider.dart
 lib/screens/analytics/
 lib/widgets/analytics/
 ```
 
 ### AI Coach
 
-The AI Coach layer analyzes match patterns and converts them into coaching insights:
-
-- Personalized summary cards.
+- Personalized performance summary cards.
 - Strengths, weaknesses, tendencies, and recommendations.
-- Opening, pace, aggression, defense, and phase-oriented observations.
+- Opening, pace, aggression, defense, and game-phase observations.
 - Cached coach insights for offline access.
 - Firestore persistence with sync queue fallback.
 - Dashboard and action screens for training guidance.
 
-Coach files include:
+Important files:
 
 ```text
 lib/ai_coach/
@@ -155,17 +153,15 @@ lib/widgets/coach/
 
 ### Replay And Post-Game Review
 
-The replay system supports game review and learning after a match:
-
 - Move timeline.
 - Replay controls.
 - Evaluation graph.
 - Critical moment cards.
 - Review summary cards.
 - Move quality classification.
-- Post-game analysis with accuracy, blunders, mistakes, best move streak, strongest phase, weakest phase, and coach summary.
+- Post-game analysis with accuracy, blunders, mistakes, best-move streak, strongest phase, weakest phase, and coach summary.
 
-Replay files include:
+Important files:
 
 ```text
 lib/replay/
@@ -176,18 +172,16 @@ lib/widgets/replay/
 
 ### Authentication, Cloud Sync, And Offline Support
 
-The app is wired for authenticated user data and resilient offline behavior:
-
 - Firebase initialization at app startup.
 - Firebase Auth email/password sign up, sign in, sign out, and password reset.
 - Cloud Firestore profile, match history, analytics, coach, and puzzle data.
-- Firestore local persistence enabled with unlimited cache.
-- Local SharedPreferences cache for user profile, match history, analytics, puzzle progress, coach insights, replay data, settings, and sync queue.
-- Connectivity polling and an offline banner.
-- Retry and no-connection UI components.
+- Firestore local persistence with unlimited cache.
+- SharedPreferences cache for user profile, match history, analytics, puzzle progress, coach insights, replay data, settings, and sync queue.
+- Connectivity polling and offline UI.
+- Retry and no-connection components.
 - Sync queue for actions that fail while offline.
 
-Relevant files include:
+Important files:
 
 ```text
 lib/firebase/
@@ -198,7 +192,7 @@ lib/widgets/shared/offline_banner.dart
 lib/widgets/shared/sync_status_indicator.dart
 ```
 
-### Customization
+## Customization
 
 Board themes:
 
@@ -221,23 +215,13 @@ Piece themes:
 - Mexico City
 - Video Chess
 
-User preferences are saved locally:
-
-- App theme
-- Piece theme
-- Move history visibility
-- Sound
-- Hints
-- Board notation
-- Board rotation
-- Undo/redo availability
-- Basic local stats
+User preferences are saved locally with SharedPreferences, including app theme, piece theme, move history visibility, sound, hints, board notation, board rotation, undo/redo availability, and basic local stats.
 
 ## Technology Stack
 
 - Flutter and Dart
 - Flame for 2D chess board rendering
-- Provider for state management
+- Provider for application state
 - Firebase Core
 - Firebase Auth
 - Cloud Firestore
@@ -252,12 +236,12 @@ User preferences are saved locally:
 ```text
 lib/
   main.dart                         App startup, Firebase, Flame assets, providers
-  core/theme/                       App colors, typography, and Material theme
+  core/theme/                       App colors, typography, and shared theme system
   firebase/                         Auth and Firestore service layer
   logic/                            Chess engine, board, game controller, timers, audio
   logic/move_calculation/           Move generation and chess AI
   models/                           App, user, match, analytics, puzzle, coach, replay models
-  providers/                        Provider-based application state
+  providers/                        Provider-backed application state
   screens/                          Main screens and feature screens
   widgets/                          Reusable and feature-specific UI components
   puzzles/                          Daily puzzle engine, generator, validator, progress tracker
@@ -269,6 +253,7 @@ assets/
   font/                             Jura font
   icons/                            Launcher icon assets
   images/                           Logo and chess piece themes
+  screenshots/                      README screenshots
 
 android/                            Android platform project
 ios/                                iOS platform project
@@ -278,10 +263,10 @@ ios/                                iOS platform project
 
 1. Flutter bindings initialize.
 2. Portrait orientation is locked.
-3. Firebase is initialized from `lib/firebase_options.dart`.
+3. Firebase initializes from `lib/firebase_options.dart`.
 4. Firestore offline persistence is enabled.
 5. Flame preloads chess piece sprites and audio assets.
-6. The app registers providers through `MultiProvider`.
+6. Providers are registered through `MultiProvider`.
 7. `AuthGate` decides whether to show authentication screens or the main app.
 8. `OfflineBanner` wraps the app and reports connectivity state.
 
@@ -332,7 +317,7 @@ Open the iOS project in Xcode for signing and distribution settings when needed.
 
 ## Firebase Data Model
 
-The Firestore service stores user data under:
+Firestore stores user data under:
 
 ```text
 users/{userId}
@@ -344,43 +329,14 @@ users/{userId}
   puzzles/progress
 ```
 
-## Important Development Notes
+## Development Notes
 
-- Global application state should stay in Provider-backed classes, especially `AppModel` for core game state.
+- Global application state should stay in Provider-backed classes, especially `AppModel`.
 - Chess rule and AI changes should be kept inside `lib/logic/`.
 - Minimax depth, alpha-beta pruning, move generation, transposition tables, and pruning optimizations should be handled carefully.
 - New piece themes must be added to `PIECE_THEMES` in `lib/models/user_preferences.dart`, placed under `assets/images/pieces/<theme_name>/`, and included in `pubspec.yaml`.
 - Do not remove undo/redo, timers, difficulty levels, or saved-game behavior unless intentionally changing the product scope.
 - Keep Dart files formatted with `dart format`.
-
-## Assets
-
-The app includes:
-
-- Chess piece sprites for 7 piece styles.
-- App logo and launcher icons.
-- Move, win, loss, and tie sound effects.
-- Jura variable font.
-
-Flutter asset registration is in `pubspec.yaml`.
-
-## What Has Been Accomplished
-
-- Built a full Flutter chess game with Flame rendering.
-- Added local single-player and two-player gameplay.
-- Implemented AI difficulty levels with a serious chess search stack.
-- Added saved games, timers, move history, undo/redo, hints, notation, sound, and board rotation.
-- Added multiple board and piece themes.
-- Migrated the app toward a professional training product named ChessCoach AI.
-- Added Firebase Auth and Firestore-backed user data.
-- Added offline cache and sync queue support.
-- Added connectivity detection and offline UI.
-- Added match history and analytics.
-- Added AI Coach insights, recommendations, strengths, weaknesses, and tendencies.
-- Added replay, post-game analysis, move quality feedback, evaluation graphing, and critical moment review.
-- Added a complete daily puzzle system with progress, XP, streaks, hints, result screens, history, and tactical categories.
-- Added a shared theme system and reusable app scaffolding.
-- Added Android app identity, launcher assets, Firebase config, and release signing hooks.
 
 ## Roadmap Ideas
 
@@ -390,14 +346,11 @@ Flutter asset registration is in `pubspec.yaml`.
 - Add cloud device-to-device saved-game resume.
 - Add achievement badges.
 - Add deeper opening classification.
-- Add more automated tests around move validation, AI search, puzzle validation, sync, and analytics.
+- Add automated tests around move validation, AI search, puzzle validation, sync, and analytics.
 
 ## Repository Notes
 
-Package name: `en_passant`
-
-Application title: `ChessCoach AI`
-
-Android application id: `com.harshvardhan.chesscoachai`
-
-Current app version in `pubspec.yaml`: `1.0.2+3`
+- Package name: `en_passant`
+- Application title: `ChessCoach AI`
+- Android application id: `com.harshvardhan.chesscoachai`
+- Current app version: `1.0.2+3`
