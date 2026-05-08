@@ -18,6 +18,42 @@ The project began as a polished offline chess app and has been expanded into a t
 - Train with a daily chess puzzle system, XP, streaks, hints, tiers, and progress history.
 - Personalize the experience with multiple board themes and piece themes.
 
+## Screenshots
+
+<table>
+  <tr>
+    <td width="50%">
+      <b>Gameplay</b><br/>
+      Interactive chess board with Flame rendering, legal move validation, and visual feedback.
+      <img src="assets/screenshots/gameplay.png" alt="Gameplay Screen" width="100%">
+    </td>
+    <td width="50%">
+      <b>Analytics Dashboard</b><br/>
+      Comprehensive statistics with win rates, streaks, duration tracking, and difficulty analysis charts.
+      <img src="assets/screenshots/analytics.png" alt="Analytics Screen" width="100%">
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <b>Daily Puzzle</b><br/>
+      Tactical puzzle training with streak tracking, XP rewards, hints, and tactical theme descriptions.
+      <img src="assets/screenshots/puzzle.png" alt="Daily Puzzle Screen" width="100%">
+    </td>
+    <td width="50%">
+      <b>AI Coach</b><br/>
+      Personalized coaching insights with performance summary, strengths, weaknesses, and recommendations.
+      <img src="assets/screenshots/coach.png" alt="AI Coach Screen" width="100%">
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      <b>Authentication</b><br/>
+      Firebase-backed sign in with email, password reset, and account creation.
+      <img src="assets/screenshots/auth.png" alt="Authentication Screen" width="50%">
+    </td>
+  </tr>
+</table>
+
 ## Current Feature Set
 
 ### Chess Gameplay
