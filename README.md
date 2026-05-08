@@ -6,8 +6,6 @@ The app started as a polished local chess game and has grown into a mobile train
 
 ## Screenshots
 
-Place screenshots in `assets/screenshots/` using the filenames shown below. These paths are already referenced by the README so they will render automatically on GitHub once the images are added.
-
 <table>
   <tr>
     <td width="33%" align="center">
